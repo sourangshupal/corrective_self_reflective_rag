@@ -1,0 +1,5 @@
+# Exclude the Dockerfile from the EB deployment bundle.
+# The image is pre-built and pushed to ECR; Dockerrun.aws.json handles the pull.
+# Including Dockerfile causes EB's parser to misread Python "from" imports as
+# Docker FROM instructions, breaking the image-pull step.
+Dockerfile

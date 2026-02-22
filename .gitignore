@@ -27,7 +27,7 @@ ENV/
 env/
 
 # uv
-uv.lock
+# uv.lock is intentionally committed for reproducible builds
 
 # IDE
 .vscode/
@@ -75,6 +75,7 @@ archived/*
 workflows/README.md
 .claude/*
 tests/*
-
-# .worktrees/*
-# .worktrees/deploy-aws-eb
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
