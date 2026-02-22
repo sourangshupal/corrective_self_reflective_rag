@@ -350,3 +350,6 @@ aws ecr delete-repository \
 | `app/config.py` | `pydantic-settings` — reads all config from environment variables |
 | `pyproject.toml` + `uv.lock` | Required in build context for `uv sync --frozen` |
 | `workflows/aws_eb_deployment.md` | Mermaid architecture and deployment flow diagrams |
+
+
+
