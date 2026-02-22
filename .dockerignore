@@ -1,0 +1,45 @@
+# Virtual environment — rebuilt inside Docker via uv
+.venv/
+
+# Python bytecode caches
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Secrets — never bake into the image
+.env
+.env.*
+
+# Development / test files
+tests/
+notebooks/
+
+# Runtime ephemeral storage (empty on fresh deploy; vectors live in Qdrant)
+uploads/
+
+# Git metadata
+.git/
+.gitignore
+.github/
+
+# Project-specific non-runtime directories
+workflows/
+sample/
+archived/
+
+# Worktree directories
+.worktrees/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Deployment bundles (don't recurse into zip)
+deploy.zip

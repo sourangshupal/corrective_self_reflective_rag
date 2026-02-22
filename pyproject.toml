@@ -38,6 +38,8 @@ dependencies = [
     "langchain-openai>=0.2.0",
     "langchain-community>=0.3.0",
     "faiss-cpu>=1.9.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
 ]
 
 [project.optional-dependencies]
@@ -60,6 +62,17 @@ dev-dependencies = [
     "ruff>=0.6.0",
     "mypy>=1.11.0",
 ]
+
+# Force CPU-only PyTorch — no CUDA/NVIDIA deps in the container
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+torchaudio = [{ index = "pytorch-cpu" }]
 
 [tool.ruff]
 line-length = 100

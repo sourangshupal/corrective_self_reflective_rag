@@ -5,6 +5,7 @@ from app.services.vector_store import VectorStore
 from app.services.embedding_service import EmbeddingService
 from app.config import get_settings
 from pathlib import Path
+import asyncio
 import shutil
 from loguru import logger
 from uuid import uuid4
@@ -44,20 +45,23 @@ async def upload_document(file: UploadFile = File(...)):
         
         logger.info(f"Saved file: {file_path}")
         
-        # Process document
-        chunks, metadatas = document_processor.process_document(
+        # Process document (CPU-heavy: run in thread pool to avoid blocking the event loop)
+        chunks, metadatas = await asyncio.to_thread(
+            document_processor.process_document,
             str(file_path),
             file_ext[1:]  # Remove dot
         )
-        
+
         # Update total chunks
         metadatas = document_processor.update_total_chunks(metadatas)
-        
-        # Generate embeddings
-        embeddings = embedding_service.embed_batch(chunks)
-        
+
+        # Generate embeddings (CPU-heavy: run in thread pool)
+        embeddings = await asyncio.to_thread(embedding_service.embed_batch, chunks)
+
         # Store in vector database
-        chunk_ids = vector_store.upsert_chunks(chunks, embeddings, metadatas)
+        chunk_ids = await asyncio.to_thread(
+            vector_store.upsert_chunks, chunks, embeddings, metadatas
+        )
         
         logger.info(f"Successfully processed {len(chunks)} chunks")
         
