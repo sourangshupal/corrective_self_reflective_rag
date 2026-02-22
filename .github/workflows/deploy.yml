@@ -86,8 +86,14 @@ jobs:
               --environment-names "$EB_ENV_NAME" \
               --query 'Environments[0].Health' \
               --output text)
-            echo "  [$i/40] Status=$STATUS Health=$HEALTH"
-            [ "$STATUS" = "Ready" ] && echo "Deployment successful!" && break
+            if [ "$STATUS" = "Ready" ]; then
+              echo "  [$i/40] Status=$STATUS Health=$HEALTH — Deployment successful!"
+              break
+            elif [ "$HEALTH" = "Green" ]; then
+              echo "  [$i/40] Status=$STATUS Health=$HEALTH — Instance healthy, rollout finishing..."
+            else
+              echo "  [$i/40] Status=$STATUS Health=$HEALTH"
+            fi
             [ $i -eq 40 ] && echo "Timed out waiting for environment to be Ready." && exit 1
             sleep 30
           done
