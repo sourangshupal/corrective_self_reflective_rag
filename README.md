@@ -15,6 +15,8 @@
   <i>🎯 Hybrid Vector Search • 🔍 Relevance Evaluation • 🌐 Web Search Fallback • ✨ Answer Validation</i>
 </p>
 
+
+
 [Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [API](#-api-endpoints) • [Workflows](#-workflows)
 
 <br>
