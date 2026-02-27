@@ -1,5 +1,6 @@
 name: Deploy to AWS Elastic Beanstalk
 
+
 on:
   push:
     branches: [deploy/aws-eb]

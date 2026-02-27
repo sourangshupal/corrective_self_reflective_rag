@@ -2,6 +2,9 @@
 
 # 🔮 Corrective + Self-Reflective RAG
 
+
+
+
 ### *Advanced Retrieval-Augmented Generation with Adaptive Intelligence*
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
@@ -14,6 +17,8 @@
 <p align="center">
   <i>🎯 Hybrid Vector Search • 🔍 Relevance Evaluation • 🌐 Web Search Fallback • ✨ Answer Validation</i>
 </p>
+
+
 
 [Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [API](#-api-endpoints) • [Workflows](#-workflows)
 
