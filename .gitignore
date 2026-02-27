@@ -75,6 +75,7 @@ archived/*
 workflows/README.md
 .claude/*
 tests/*
+
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
