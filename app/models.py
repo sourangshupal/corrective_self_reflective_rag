@@ -7,16 +7,12 @@ from datetime import datetime
 
 class QueryRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=1000)
-    mode: Literal["standard", "crag", "self_reflective", "both"] = "both"
+    mode: Literal["standard", "crag"] = "standard"
     search_mode: Literal["dense", "sparse", "hybrid"] = Field(
         default="hybrid",
         description="Search mode: dense (semantic), sparse (keyword), or hybrid (RRF fusion)"
     )
     top_k: int = Field(default=5, ge=1, le=20)
-    enable_hyde: bool = Field(
-        default=False,
-        description="Use HYDE (Hypothetical Document Embeddings) for query expansion"
-    )
     enable_reranking: bool = Field(
         default=False,
         description="Use cross-encoder reranking for improved precision"
@@ -79,25 +75,6 @@ class CRAGResult(BaseModel):
     web_results: Optional[list[dict]] = None
 
 
-# ============= Self-Reflective Models =============
-
-class ReflectionResult(BaseModel):
-    answer_grounded: bool
-    hallucination_detected: bool
-    sources_cited: list[str]
-    reflection_score: float
-    needs_regeneration: bool
-    reflection_reason: str
-    reflected_at: datetime
-
-
-class SelfReflectiveResult(BaseModel):
-    final_answer: str
-    iterations: int
-    reflection: ReflectionResult
-    retrieved_chunks: list[RetrievedChunk]
-
-
 # ============= Query Response =============
 
 class QueryResponse(BaseModel):
@@ -107,9 +84,6 @@ class QueryResponse(BaseModel):
     search_mode: Literal["dense", "sparse", "hybrid"]
     sources: list[RetrievedChunk]
     crag_details: Optional[CRAGResult] = None
-    reflection_details: Optional[SelfReflectiveResult] = None
     response_time_ms: float
-    hyde_used: bool = False
-    hyde_hypotheses: Optional[list[str]] = None
     reranking_used: bool = False
     initial_retrieval_count: Optional[int] = None

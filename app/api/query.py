@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 from app.models import QueryRequest, QueryResponse
 from app.core.retrieval import RetrievalService
 from app.services.crag import CRAGService
-from app.services.self_reflective import SelfReflectiveService
 from app.services.llm_service import LLMService
 from app.services.reranking import RerankingService
 from app.config import get_settings
@@ -14,7 +13,6 @@ router = APIRouter(prefix="/query", tags=["query"])
 settings = get_settings()
 retrieval_service = RetrievalService()
 crag_service = CRAGService()
-self_reflective_service = SelfReflectiveService()
 llm_service = LLMService()
 reranking_service = RerankingService()
 
@@ -25,7 +23,6 @@ async def query_documents(request: QueryRequest):
 
     start_time = time.time()
 
-    hyde_hypotheses = None
     initial_retrieval_count = None
 
     try:
@@ -34,18 +31,14 @@ async def query_documents(request: QueryRequest):
         if request.enable_reranking:
             initial_top_k = settings.reranker_initial_top_k
 
-        # Stage 1: Retrieve (with optional HYDE)
+        # Stage 1: Retrieve
         retrieved_chunks = retrieval_service.retrieve(
             query=request.query,
             top_k=initial_top_k,
-            use_hyde=request.enable_hyde,
             search_mode=request.search_mode
         )
 
         initial_retrieval_count = len(retrieved_chunks)
-
-        if request.enable_hyde:
-            hyde_hypotheses = retrieval_service.get_last_hyde_hypotheses()
 
         if not retrieved_chunks:
             raise HTTPException(
@@ -63,74 +56,20 @@ async def query_documents(request: QueryRequest):
 
         answer = None
         crag_details = None
-        reflection_details = None
-        
+
         # Execute based on mode
         if request.mode == "standard":
             # Standard RAG
             context = "\n\n".join([chunk.content for chunk in retrieved_chunks])
             prompt = f"Query: {request.query}\n\nContext:\n{context}\n\nAnswer:"
             answer = llm_service.generate(prompt)
-            
+
         elif request.mode == "crag":
             # Corrective RAG
             crag_result = crag_service.execute_crag(request.query, retrieved_chunks)
             answer = crag_service.generate_answer_with_crag(request.query, crag_result)
             crag_details = crag_result
-            
-        elif request.mode == "self_reflective":
-            # Self-Reflective RAG
-            def retrieval_fn(refined_query):
-                return retrieval_service.retrieve(
-                    refined_query,
-                    request.top_k,
-                    search_mode=request.search_mode
-                )
-            
-            sr_result = self_reflective_service.execute_self_reflective(
-                request.query,
-                retrieved_chunks,
-                retrieval_fn
-            )
-            answer = sr_result.final_answer
-            reflection_details = sr_result
-            retrieved_chunks = sr_result.retrieved_chunks
-            
-        elif request.mode == "both":
-            # Execute CRAG first (evaluates relevance, triggers web search if needed)
-            crag_result = crag_service.execute_crag(request.query, retrieved_chunks)
 
-            # Get augmented chunks (includes web search results if triggered)
-            working_chunks = crag_service.get_augmented_chunks(crag_result)
-
-            logger.info(f"Mode=both: Using {len(working_chunks)} chunks for Self-Reflective "
-                       f"({len([c for c in working_chunks if c.metadata.file_type == 'web_search'])} from web search)")
-
-            # CRAG-aware retrieval function: preserves web search if it was triggered
-            def retrieval_fn(refined_query):
-                # Re-retrieve from vector store
-                new_chunks = retrieval_service.retrieve(
-                    refined_query,
-                    request.top_k,
-                    search_mode=request.search_mode
-                )
-                # Re-run CRAG evaluation on new chunks
-                new_crag_result = crag_service.execute_crag(refined_query, new_chunks)
-                # Return augmented chunks (preserves web search if triggered again)
-                return crag_service.get_augmented_chunks(new_crag_result)
-
-            # Execute Self-Reflective RAG with CRAG-augmented context
-            sr_result = self_reflective_service.execute_self_reflective(
-                request.query,
-                working_chunks,  # Now includes web search results!
-                retrieval_fn
-            )
-
-            answer = sr_result.final_answer
-            crag_details = crag_result
-            reflection_details = sr_result
-            retrieved_chunks = sr_result.retrieved_chunks
-        
         response_time = (time.time() - start_time) * 1000
 
         return QueryResponse(
@@ -140,10 +79,7 @@ async def query_documents(request: QueryRequest):
             search_mode=request.search_mode,
             sources=retrieved_chunks,
             crag_details=crag_details,
-            reflection_details=reflection_details,
             response_time_ms=response_time,
-            hyde_used=request.enable_hyde,
-            hyde_hypotheses=hyde_hypotheses,
             reranking_used=request.enable_reranking,
             initial_retrieval_count=initial_retrieval_count
         )
@@ -159,7 +95,7 @@ async def compare_modes(query: str, top_k: int = 5):
     
     results = {}
     
-    for mode in ["standard", "crag", "self_reflective"]:
+    for mode in ["standard", "crag"]:
         try:
             request = QueryRequest(query=query, mode=mode, top_k=top_k)
             result = await query_documents(request)

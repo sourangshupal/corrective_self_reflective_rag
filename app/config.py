@@ -24,10 +24,6 @@ class Settings(BaseSettings):
     crag_relevance_threshold: float = 0.7
     crag_ambiguous_threshold: float = 0.5
     
-    # Self-Reflective Settings
-    reflection_min_score: float = 0.8
-    max_reflection_retries: int = 2
-    
     # Retrieval
     top_k_results: int = 5
 
@@ -35,10 +31,6 @@ class Settings(BaseSettings):
     hybrid_search_enabled: bool = True
     sparse_vector_enabled: bool = True
     rrf_k: int = 60  # RRF fusion parameter
-
-    # HYDE Settings
-    hyde_num_hypotheses: int = 3
-    hyde_enabled_by_default: bool = False
 
     # Reranking Settings
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
